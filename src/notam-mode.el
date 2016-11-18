@@ -1,4 +1,5 @@
 ;; Major Mode to highlight AFTN Files with NOTAMS
+;; define highlights
 (setq my-highlights
       '(("[A-Z][0-9]\\{4\\}/[0-9]\\{2\\}" . font-lock-function-name-face) ;; Notam Nr
         ("[A-Z][0-9]\\{4\\}/[[:space:]]" . font-lock-warning-face) ;; Notam Nr with missing year
@@ -13,8 +14,10 @@
         ("[0-9]\\{6\\})" . font-lock-warning-face) ;;
         ("^A\)\\|^B\)\\|C\)\\|^D\)\\|^E\)\\|^Q\)" . font-lock-constant-face)))
 
+;; Define mode
 (define-derived-mode notam-mode fundamental-mode
   (setq font-lock-defaults '(my-highlights))
   (setq mode-name "NOTAM File"))
 
+;; register mode for aftn-files.
 (add-to-list 'auto-mode-alist '("\\.aftn\\'" . notam-mode))
