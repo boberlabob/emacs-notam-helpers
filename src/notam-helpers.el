@@ -1,3 +1,4 @@
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions to work with NOTAM Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -10,35 +11,52 @@
   (concat
    (format-time-string
     "%y%m%d%H%M"
-    (time-add (current-time) (seconds-to-time (* 60 60 24 no-of-days))
-              ))))
+    (time-add (current-time) (seconds-to-time (* 60 60 24 no-of-days))))))
+
+(defun date-as-aftn (no-of-days)
+  "Return today plus no-of-days as aftn DTG"
+  (interactive)
+  (concat
+   (format-time-string
+    "%y%m%d"
+    (time-add (current-time) (seconds-to-time (* 60 60 24 no-of-days))))))
+
 
 (defun replace-all-item-B (new-item-B)
-  (perform-replace "B)[[:digit:]]\\{10\\}" (concat "B)" new-item-B) nil t nil))
+  (perform-replace "B)[[:digit:]]\\{10\\}" (concat "B)" new-item-B "0800") nil t nil))
 
 (defun replace-all-item-C (new-item-C)
-  (perform-replace "C)[[:digit:]]\\{10\\}" (concat "C)" new-item-C) nil t nil))
+  (perform-replace "C)[[:digit:]]\\{10\\}" (concat "C)" new-item-C "1800") nil t nil))
 
-(defun set-all-item-B-to-now-plus-days (days)
-  (replace-all-item-B (now-as-aftn days)))
+(defun notam-set-all-item-B-to-now-plus-days (days)
+  (replace-all-item-B (date-as-aftn days)))
 
-(defun set-all-item-C-to-now-plus-days (days)
-  (replace-all-item-C (now-as-aftn days)))
+(defun notam-set-all-item-C-to-now-plus-days (days)
+  (replace-all-item-C (date-as-aftn days)))
 
-(defun update-all-item-B-and-C-to-default ()
+(defun notam-update-all-item-B-and-C (daysB daysC)
   (beginning-of-buffer)
-  (set-all-item-B-to-now-plus-days 0)
+  (notam-set-all-item-B-to-now-plus-days daysB)
   (beginning-of-buffer)
-  (set-all-item-C-to-now-plus-days 7))
+  (notam-set-all-item-C-to-now-plus-days daysC))
 
-(defun update-all-item-B-and-C (daysB daysC)
-  (beginning-of-buffer)
-  (set-all-item-B-to-now-plus-days daysB)
-  (beginning-of-buffer)
-  (set-all-item-C-to-now-plus-days daysC))
+(defun notam-update-all-item-B-and-C-to-default ()
+  (notam-update-all-item-B-and-C 0 7))
+
+
+;; Empty all comments
+(defun notam-reset-comments (offset step from-start)
+  (if
+      from-start
+      (beginning-of-buffer))
+  (let ((inc-variable offset))
+    (while (re-search-forward "\\(--<\\)\\(.*\\)\\(>--\\)" nil t)
+      (replace-match (format "\\1 No. %d \\3" inc-variable))
+      (setq inc-variable (+ inc-variable step)))))
+
 
 ;; Re-Number Notams
-(defun reset-notam-numbers (offset step from-start)
+(defun notam-reset-numbers (offset step from-start)
   (if
       from-start
       (beginning-of-buffer))
@@ -47,11 +65,15 @@
       (replace-match (format "\\1%04d\\3" inc-variable))
       (setq inc-variable (+ inc-variable step)))))
 
-(defun reset-notam-numbers-from-start ()
+(defun notam-reset-all-numbers ()
   (beginning-of-buffer)
-  (reset-notam-numbers-from-here 1 1 t))
+  (notam-reset-numbers 1 1 t))
 
-(defun insert-notam-template (notam-nr qfir coord loci)
+;; Q-Line setzen
+
+
+;; Templates
+(defun notam-insert-template (notam-nr qfir coord loci)
   (interactive)
   (insert "---<   >---\n")
   (insert "VAA0026 171526\n")
@@ -66,15 +88,40 @@
   (insert "E)\n")
   )
 
-(defun insert-notam-lszh (notam-nr)
-  (insert-notam-template notam-nr "LSAS" "TBD" "LSZH"))
+(defun notam-insert-template-lszh ()
+  (insert-notam-template (read-string "NOTAM-No.: ") "LSAS" "TBD" "LSZH"))
 
 
-(defun insert-notam()
-  (insert-notam-template
-   (read-string "NOTAM-No:")
-   (read-string "QFIR:")
-   (read-string "Coordinates:")
-   (read-string "LOCI")))
+(defun notam-insert()
+  (notam-insert-template
+   (read-string "NOTAM-No: ")
+   (read-string "QFIR: ")
+   (read-string "Coordinates: ")
+   (read-string "LOCI: ")))
+
+;; Notam overview
+(defun copy-lines-matching-re (re)
+  "find all lines matching the regexp RE in the current buffer
+putting the matching lines in a buffer named *matching*"
+  (interactive "sRegexp to match: ")
+  (let ((result-buffer (get-buffer-create "*matching*")))
+    (with-current-buffer result-buffer
+      (erase-buffer))
+    (save-match-data
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward re nil t)
+          (princ (buffer-substring-no-properties (line-beginning-position)
+                                                 (line-beginning-position 2))
+                 result-buffer))))
+    (pop-to-buffer result-buffer)))
+
+(defun notam-overview ()
+  (copy-lines-matching-re "\\(([A-Z]\\)\\([[:digit:]]\\{4\\}\\)\\(/[[:digit:]]\\{2\\}\\)")
+  (beginning-of-buffer)
+  (perform-replace "\^B(" "" nil t nil)
+  (beginning-of-buffer)
+  (notam-overview-mode))
+
 
 ;; Playground
