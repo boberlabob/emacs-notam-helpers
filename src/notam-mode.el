@@ -1,7 +1,12 @@
+(load-file "./notam-definitions.el")
+
+;;;;;;;;
+;; Emacs modes to colorize AFTN Files
+;;;;;;;;
 
 ;; Major Mode to highlight AFTN Files with NOTAMS
 (setq my-highlights
-      '(("[A-Z][0-9]\\{4\\}/[0-9]\\{2\\}" . font-lock-function-name-face) ;; Notam Nr
+      '((re-notam-nr . font-lock-function-name-face) ;; Notam Nr
         ("[A-Z][0-9]\\{4\\}/[[:space:]]" . font-lock-warning-face) ;; Notam Nr with missing year
         ("NOTAM\\(N\\|C\\|R\\)" . font-lock-keyword-face) ;; Notam type
         ("C\)\s?\\(PERM\\|UFN\\)" . font-lock-constant-face) ;; ItemC extension
