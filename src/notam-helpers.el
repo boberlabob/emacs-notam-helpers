@@ -1,3 +1,4 @@
+(load-file "./notam-definitions.el")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions to work with NOTAM Files
