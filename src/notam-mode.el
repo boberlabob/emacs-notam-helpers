@@ -1,5 +1,3 @@
-(load-file "./notam-definitions.el")
-
 ;;;;;;;;
 ;; Emacs modes to colorize AFTN Files
 ;;;;;;;;
