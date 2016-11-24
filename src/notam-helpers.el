@@ -85,10 +85,11 @@
   (insert (concat "C)" (now-as-aftn 7) "\n"))
   (insert "D)\n")
   (insert "E)\n")
+  (insert "")
   )
 
 (defun notam-insert-template-lszh ()
-  (insert-notam-template (read-string "NOTAM-No.: ") "LSAS" "TBD" "LSZH"))
+  (notam-insert-template (read-string "NOTAM-No.: ") "LSAS" "4745N00833E005" "LSZH"))
 
 
 (defun notam-insert()
